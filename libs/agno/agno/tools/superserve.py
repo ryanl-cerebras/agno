@@ -3,7 +3,7 @@ import shlex
 from os import getenv
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -73,18 +73,18 @@ class SuperserveTools(Toolkit):
         env_vars: Optional[Dict[str, str]] = None,
         secrets: Optional[Dict[str, str]] = None,
         persistent: bool = True,
-        run_python_code: bool = True,
-        run_command: bool = True,
-        create_file: bool = True,
+        run_python_code: bool = False,
+        run_command: bool = False,
+        create_file: bool = False,
         read_file: bool = True,
-        list_files: bool = True,
-        delete_file: bool = True,
-        download_directory: bool = True,
+        list_files: bool = False,
+        delete_file: bool = False,
+        download_directory: bool = False,
         get_sandbox_info: bool = True,
-        list_sandboxes: bool = True,
-        shutdown_sandbox: bool = True,
-        shutdown_sandbox_by_id: bool = True,
-        get_preview_url: bool = True,
+        list_sandboxes: bool = False,
+        shutdown_sandbox: bool = False,
+        shutdown_sandbox_by_id: bool = False,
+        get_preview_url: bool = False,
         pause_sandbox: bool = False,
         resume_sandbox: bool = False,
         attach_secret: bool = False,
@@ -113,23 +113,23 @@ class SuperserveTools(Toolkit):
                 proxy token; the real credential never enters the sandbox.
             persistent: Persist the sandbox id in the agent's session state so the same
                 sandbox is reused across runs (default: True).
-            run_python_code: Register the run_python_code tool (default: True).
-            run_command: Register the run_command tool (default: True).
-            create_file: Register the create_file tool (default: True).
-            read_file: Register the read_file tool (default: True).
-            list_files: Register the list_files tool (default: True).
-            delete_file: Register the delete_file tool (default: True).
-            download_directory: Register the download_directory tool (default: True).
-            get_sandbox_info: Register the get_sandbox_info tool (default: True).
-            list_sandboxes: Register the list_sandboxes tool (default: True).
-            shutdown_sandbox: Register the shutdown_sandbox tool (default: True).
-            shutdown_sandbox_by_id: Register the shutdown_sandbox_by_id tool (default: True).
-            get_preview_url: Register the get_preview_url tool (default: True).
-            pause_sandbox: Register the pause_sandbox tool (default: False).
-            resume_sandbox: Register the resume_sandbox tool (default: False).
-            attach_secret: Register the attach_secret tool (default: False).
-            detach_secret: Register the detach_secret tool (default: False).
-            all: Register every tool, overriding the individual flags (default: False).
+            run_python_code: Register the run_python_code tool. Defaults to False.
+            run_command: Register the run_command tool. Defaults to False.
+            create_file: Register the create_file tool. Defaults to False.
+            read_file: Register the read_file tool. Defaults to True.
+            list_files: Register the list_files tool. Defaults to False.
+            delete_file: Register the delete_file tool. Defaults to False.
+            download_directory: Register the download_directory tool. Defaults to False.
+            get_sandbox_info: Register the get_sandbox_info tool. Defaults to True.
+            list_sandboxes: Register the list_sandboxes tool. Defaults to False.
+            shutdown_sandbox: Register the shutdown_sandbox tool. Defaults to False.
+            shutdown_sandbox_by_id: Register the shutdown_sandbox_by_id tool. Defaults to False.
+            get_preview_url: Register the get_preview_url tool. Defaults to False.
+            pause_sandbox: Register the pause_sandbox tool. Defaults to False.
+            resume_sandbox: Register the resume_sandbox tool. Defaults to False.
+            attach_secret: Register the attach_secret tool. Defaults to False.
+            detach_secret: Register the detach_secret tool. Defaults to False.
+            all: Register every tool, overriding the individual flags. Defaults to False.
             instructions: Override the default toolkit instructions.
             add_instructions: Whether to add the instructions to the agent's system message.
         """
@@ -156,8 +156,8 @@ class SuperserveTools(Toolkit):
 
         self.instructions = instructions or DEFAULT_INSTRUCTIONS
 
-        tools: List[Any] = []
-        async_tools: List[Any] = []
+        tools: List[Callable] = []
+        async_tools: List[Tuple[Callable, str]] = []
         if all or run_python_code:
             tools.append(self.run_python_code)
             async_tools.append((self.arun_python_code, "run_python_code"))

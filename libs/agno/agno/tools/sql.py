@@ -1,8 +1,8 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 from agno.tools import Toolkit
-from agno.utils.log import log_debug, logger
+from agno.utils.log import log_debug, log_exception
 
 try:
     from sqlalchemy import Engine, create_engine
@@ -24,13 +24,30 @@ class SQLTools(Toolkit):
         port: Optional[int] = None,
         schema: Optional[str] = None,
         dialect: Optional[str] = None,
-        tables: Optional[Dict[str, Any]] = None,
+        tables: Optional[Dict[str, str]] = None,
         list_tables: bool = True,
         describe_table: bool = True,
-        run_sql_query: bool = True,
+        run_sql_query: bool = False,
         all: bool = False,
         **kwargs,
     ):
+        """Initialize SQLTools for database operations.
+
+        Args:
+            db_url: Database connection URL (e.g., postgresql://user:pass@host:port/db).
+            db_engine: SQLAlchemy Engine instance. Takes precedence over db_url.
+            user: Database username (used with dialect/host/port).
+            password: Database password.
+            host: Database host.
+            port: Database port.
+            schema: Database schema to use.
+            dialect: Database dialect (e.g., postgresql, mysql).
+            tables: Dict of table names to descriptions to expose to the agent.
+            list_tables: Enable listing tables. Defaults to True.
+            describe_table: Enable describing table schema. Defaults to True.
+            run_sql_query: Enable running arbitrary SQL. Defaults to False (security).
+            all: Enable all tools. Defaults to False.
+        """
         # Get the database engine
         _engine: Optional[Engine] = db_engine
         if _engine is None and db_url is not None:
@@ -51,9 +68,9 @@ class SQLTools(Toolkit):
         self.schema = schema
 
         # Tables this toolkit can access
-        self.tables: Optional[Dict[str, Any]] = tables
+        self.tables: Optional[Dict[str, str]] = tables
 
-        tools: List[Any] = []
+        tools: List[Callable] = []
         if all or list_tables:
             tools.append(self.list_tables)
         if all or describe_table:
@@ -82,7 +99,7 @@ class SQLTools(Toolkit):
             log_debug(f"table_names: {table_names}")
             return json.dumps(table_names)
         except Exception as e:
-            logger.exception("Error getting tables")
+            log_exception("Error getting tables")
             return json.dumps({"error": f"Error getting tables: {e}"})
 
     def describe_table(self, table_name: str) -> str:
@@ -111,7 +128,7 @@ class SQLTools(Toolkit):
                 ]
             )
         except Exception as e:
-            logger.exception("Error getting table schema")
+            log_exception("Error getting table schema")
             return json.dumps({"error": f"Error getting table schema: {e}"})
 
     def run_sql_query(self, query: str, limit: Optional[int] = 10) -> str:
@@ -129,7 +146,7 @@ class SQLTools(Toolkit):
         try:
             return json.dumps(self.run_sql(sql=query, limit=limit), default=str)
         except Exception as e:
-            logger.exception("Error running query")
+            log_exception("Error running query")
             return json.dumps({"error": f"Error running query: {e}"})
 
     def run_sql(self, sql: str, limit: Optional[int] = None) -> List[dict]:
@@ -160,5 +177,5 @@ class SQLTools(Toolkit):
                     rows = result.fetchall()
                 return [row._asdict() for row in rows]
             except Exception:
-                logger.exception("Error while executing SQL")
+                log_exception("Error while executing SQL")
                 return []

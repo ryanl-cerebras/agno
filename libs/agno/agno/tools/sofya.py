@@ -1,6 +1,6 @@
 import json
 from os import getenv
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Callable, Dict, List, Literal, Optional
 
 import requests
 
@@ -59,7 +59,7 @@ class SofyaTools(Toolkit):
         self.format: Literal["json", "markdown"] = format
         self.timeout: int = timeout
 
-        tools: List[Any] = []
+        tools: List[Callable] = []
         if all or search:
             tools.append(self.search_web)
         if all or extract:
