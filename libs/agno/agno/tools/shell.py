@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, log_warning

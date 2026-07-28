@@ -16,17 +16,24 @@ from agno.tools.file import FileTools
 # Create Agents
 # ---------------------------------------------------------------------------
 
-# Example 1: Read and write files (default)
+# Example 1: Read and write files
 agent = Agent(
     model=OpenAIResponses(id="gpt-5.5"),
-    tools=[FileTools(base_dir=Path("tmp/file_tools"))],
+    tools=[FileTools(base_dir=Path("tmp/file_tools"), save_file=True)],
     markdown=True,
 )
 
-# Example 2: Write-only mode (disable read_file)
-write_only_agent = Agent(
+# Example 2: Read large files
+large_file_agent = Agent(
     model=OpenAIResponses(id="gpt-5.5"),
-    tools=[FileTools(base_dir=Path("tmp/file_tools"), read_file=False)],
+    tools=[
+        FileTools(
+            base_dir=Path("tmp/file_tools"),
+            save_file=True,
+            max_file_length=2000000,  # 2M chars (~500k tokens)
+            max_file_lines=40000,
+        )
+    ],
     markdown=True,
 )
 

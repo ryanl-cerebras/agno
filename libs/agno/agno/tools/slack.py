@@ -145,18 +145,18 @@ class SlackTools(Toolkit):
         markdown: bool = True,
         output_directory: Optional[str] = None,
         save_downloads: bool = False,
-        send_message: bool = True,
-        send_message_thread: bool = True,
+        send_message: bool = False,
+        send_message_thread: bool = False,
         list_channels: bool = True,
-        get_channel_history: bool = True,
-        upload_file: bool = True,
-        download_file: bool = True,
+        get_channel_history: bool = False,
+        upload_file: bool = False,
+        download_file: bool = False,
         search_messages: bool = False,
         search_workspace: bool = False,
         get_thread: bool = False,
-        list_users: bool = False,
-        get_user_info: bool = False,
-        get_channel_info: bool = False,
+        list_users: bool = True,
+        get_user_info: bool = True,
+        get_channel_info: bool = True,
         all: bool = False,
         ssl: Optional[SSLContext] = None,
         max_file_size: int = 1_073_741_824,  # 1GB
@@ -172,20 +172,20 @@ class SlackTools(Toolkit):
             markdown (bool): Whether to enable Slack markdown formatting. Defaults to True.
             output_directory (str): Directory for saving downloaded files. Only used when save_downloads=True.
             save_downloads (bool): Whether to save downloaded files to disk. Defaults to False (base64 only).
-            send_message (bool): Whether to enable the send_message tool. Defaults to True.
-            send_message_thread (bool): Whether to enable the send_message_thread tool. Defaults to True.
-            list_channels (bool): Whether to enable the list_channels tool. Defaults to True.
-            get_channel_history (bool): Whether to enable the get_channel_history tool. Defaults to True.
-            upload_file (bool): Whether to enable the upload_file tool. Defaults to True.
-            download_file (bool): Whether to enable the download_file tool. Defaults to True.
-            search_messages (bool): Whether to enable the search_messages tool (legacy API). Defaults to False.
-            search_workspace (bool): Whether to enable the search_workspace tool (assistant.search.context API).
+            send_message (bool): Enable the send_message tool. Defaults to False (externally visible).
+            send_message_thread (bool): Enable the send_message_thread tool. Defaults to False (externally visible).
+            list_channels (bool): Enable the list_channels tool. Defaults to True.
+            get_channel_history (bool): Enable the get_channel_history tool. Defaults to False (token heavy).
+            upload_file (bool): Enable the upload_file tool. Defaults to False (externally visible).
+            download_file (bool): Enable the download_file tool. Defaults to False (token heavy).
+            search_messages (bool): Enable the search_messages tool (legacy API, requires user token). Defaults to False.
+            search_workspace (bool): Enable the search_workspace tool (assistant.search.context API).
                 Requires search:read.public, search:read.files, and search:read.users bot scopes.
                 The action_token is read from run_context.metadata at call time. Defaults to False.
-            get_thread (bool): Whether to enable the get_thread tool. Defaults to False.
-            list_users (bool): Whether to enable the list_users tool. Defaults to False.
-            get_user_info (bool): Whether to enable the get_user_info tool. Defaults to False.
-            get_channel_info (bool): Whether to enable the get_channel_info tool. Defaults to False.
+            get_thread (bool): Enable the get_thread tool. Defaults to False (token heavy).
+            list_users (bool): Enable the list_users tool. Defaults to True.
+            get_user_info (bool): Enable the get_user_info tool. Defaults to True (single user, light).
+            get_channel_info (bool): Enable the get_channel_info tool. Defaults to True (single channel, light).
             all (bool): Whether to enable all tools. Defaults to False.
             ssl (SSLContext): Optional SSL context for the Slack WebClient. Defaults to None.
             max_file_size (int): Maximum file size in bytes for uploads and downloads. Defaults to 1GB.

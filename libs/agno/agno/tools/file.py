@@ -84,7 +84,8 @@ class FileTools(Toolkit):
         self,
         base_dir: Optional[Path] = None,
         default_extension: str = "txt",
-        save_file: bool = True,
+        restrict_to_base_dir: bool = True,
+        save_file: bool = False,
         read_file: bool = True,
         delete_file: bool = False,
         list_files: bool = True,
@@ -93,8 +94,8 @@ class FileTools(Toolkit):
         replace_file_chunk: bool = False,
         search_content: bool = True,
         expose_base_directory: bool = False,
-        max_file_length: int = 10000000,
-        max_file_lines: int = 100000,
+        max_file_length: int = 400000,
+        max_file_lines: int = 8000,
         line_separator: str = "\n",
         exclude_patterns: Optional[List[str]] = None,
         all: bool = False,
@@ -105,6 +106,7 @@ class FileTools(Toolkit):
         Args:
             base_dir: Root directory for all file operations. Defaults to cwd.
             default_extension: Default file extension when none specified.
+            restrict_to_base_dir: If True, all paths must stay within base_dir.
             save_file: Enable the save_file tool.
             read_file: Enable the read_file tool.
             delete_file: Enable the delete_file tool.
@@ -120,7 +122,9 @@ class FileTools(Toolkit):
             exclude_patterns: Patterns to exclude from list/search operations.
             all: Enable all tools.
         """
-        self.base_dir: Path = (base_dir or Path.cwd()).resolve()
+        self.base_dir: Path = Path(base_dir).resolve() if base_dir else Path.cwd().resolve()
+        self.base_dir.mkdir(parents=True, exist_ok=True)
+        self.restrict_to_base_dir = restrict_to_base_dir
         self.default_extension = default_extension.lstrip(".")
 
         tools: List[Callable] = []
@@ -163,7 +167,7 @@ class FileTools(Toolkit):
         Returns:
             Tuple of (is_safe, resolved_path).
         """
-        return self._check_path(relative_path, self.base_dir)
+        return self._check_path(relative_path, self.base_dir, self.restrict_to_base_dir)
 
     def save_file(
         self,
