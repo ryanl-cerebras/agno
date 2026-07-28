@@ -75,7 +75,7 @@ class ResendTools(Toolkit):
                 params["from"] = self.from_email
 
             response = resend.Emails.send(params)
-            return json.dumps({"status": "success", "id": response["id"], "to": to_email})
+            return json.dumps(response)
         except Exception as e:
             log_error(f"Failed to send email: {e}")
             return json.dumps({"error": f"Failed to send email: {e}"})
