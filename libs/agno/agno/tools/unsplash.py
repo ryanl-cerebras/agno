@@ -8,12 +8,12 @@ Get your free API key at: https://unsplash.com/developers
 
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from agno.tools import Toolkit
-from agno.utils.log import log_debug, logger
+from agno.utils.log import log_debug, log_exception, logger
 
 
 class UnsplashTools(Toolkit):
@@ -70,7 +70,7 @@ class UnsplashTools(Toolkit):
 
         self.base_url = "https://api.unsplash.com"
 
-        tools: List[Any] = []
+        tools: List[Callable] = []
         if all or search_photos:
             tools.append(self.search_photos)
         if all or get_photo:
@@ -212,6 +212,7 @@ class UnsplashTools(Toolkit):
             return json.dumps(results, indent=2)
 
         except Exception as e:
+            log_exception(e, "Error searching Unsplash")
             return json.dumps({"error": f"Error searching Unsplash: {e}"})
 
     def get_photo(self, photo_id: str) -> str:
@@ -261,6 +262,7 @@ class UnsplashTools(Toolkit):
             return json.dumps(result, indent=2)
 
         except Exception as e:
+            log_exception(e, "Error getting photo")
             return json.dumps({"error": f"Error getting photo: {e}"})
 
     def get_random_photo(
@@ -306,6 +308,7 @@ class UnsplashTools(Toolkit):
             return json.dumps({"photos": photos}, indent=2)
 
         except Exception as e:
+            log_exception(e, "Error getting random photo")
             return json.dumps({"error": f"Error getting random photo: {e}"})
 
     def download_photo(self, photo_id: str) -> str:
@@ -340,4 +343,5 @@ class UnsplashTools(Toolkit):
             )
 
         except Exception as e:
+            log_exception(e, "Error tracking download")
             return json.dumps({"error": f"Error tracking download: {e}"})

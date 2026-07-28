@@ -1,10 +1,10 @@
 import json
 import re
 from os import getenv
-from typing import Any, List, Optional
+from typing import Callable, List, Optional
 
 from agno.tools import Toolkit
-from agno.utils.log import log_error, log_info, logger
+from agno.utils.log import log_error, log_exception, log_info
 
 try:
     from twilio.base.exceptions import TwilioRestException
@@ -23,7 +23,8 @@ class TwilioTools(Toolkit):
         region: Optional[str] = None,
         edge: Optional[str] = None,
         debug: bool = False,
-        send_sms: bool = True,
+        # Tool toggles
+        send_sms: bool = False,
         get_call_details: bool = True,
         list_messages: bool = True,
         all: bool = False,
@@ -36,13 +37,17 @@ class TwilioTools(Toolkit):
         2. Account SID + API Key + API Secret
 
         Args:
-            account_sid: Twilio Account SID
-            auth_token: Twilio Auth Token (Method 1)
-            api_key: Twilio API Key (Method 2)
-            api_secret: Twilio API Secret (Method 2)
-            region: Optional Twilio region (e.g. 'au1')
-            edge: Optional Twilio edge location (e.g. 'sydney')
-            debug: Enable debug logging
+            account_sid: Twilio Account SID. Falls back to TWILIO_ACCOUNT_SID env var.
+            auth_token: Twilio Auth Token for Method 1. Falls back to TWILIO_AUTH_TOKEN env var.
+            api_key: Twilio API Key for Method 2. Falls back to TWILIO_API_KEY env var.
+            api_secret: Twilio API Secret for Method 2. Falls back to TWILIO_API_SECRET env var.
+            region: Twilio region (e.g. 'au1'). Falls back to TWILIO_REGION env var.
+            edge: Twilio edge location (e.g. 'sydney'). Falls back to TWILIO_EDGE env var.
+            debug: Enable debug logging.
+            send_sms: Enable send_sms tool. Default False (externally visible).
+            get_call_details: Enable get_call_details tool. Default True.
+            list_messages: Enable list_messages tool. Default True.
+            all: Enable all tools.
         """
         # Get credentials from environment if not provided
         self.account_sid = account_sid or getenv("TWILIO_ACCOUNT_SID")
@@ -88,7 +93,7 @@ class TwilioTools(Toolkit):
             logging.basicConfig()
             self.client.http_client.logger.setLevel(logging.INFO)
 
-        tools: List[Any] = []
+        tools: List[Callable] = []
         if all or send_sms:
             tools.append(self.send_sms)
         if all or get_call_details:
@@ -127,7 +132,7 @@ class TwilioTools(Toolkit):
             log_info(f"SMS sent. SID: {message.sid}, to: {to}")
             return json.dumps({"ok": True, "message": "Message sent successfully", "sid": message.sid})
         except TwilioRestException as e:
-            logger.exception(f"Failed to send SMS to {to}")
+            log_exception(f"Failed to send SMS to {to}")
             return json.dumps({"error": f"Error sending message: {str(e)}"})
 
     def get_call_details(self, call_sid: str) -> str:
@@ -156,7 +161,7 @@ class TwilioTools(Toolkit):
                 }
             )
         except TwilioRestException as e:
-            logger.exception(f"Failed to fetch call details for SID {call_sid}")
+            log_exception(f"Failed to fetch call details for SID {call_sid}")
             return json.dumps({"error": str(e)})
 
     def list_messages(self, limit: int = 20) -> str:
@@ -185,5 +190,5 @@ class TwilioTools(Toolkit):
             log_info(f"Retrieved {len(messages)} messages")
             return json.dumps({"messages": messages})
         except TwilioRestException as e:
-            logger.exception("Failed to list messages")
+            log_exception("Failed to list messages")
             return json.dumps({"error": str(e)})

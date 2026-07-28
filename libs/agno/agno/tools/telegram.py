@@ -1,7 +1,7 @@
 import json
 from os import getenv
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Callable, List, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug
@@ -15,27 +15,27 @@ except ImportError as e:
 
 
 class TelegramTools(Toolkit):
-    """Toolkit for sending messages and media via the Telegram Bot API.
+    """Toolkit for interacting with the Telegram Bot API.
 
     Args:
         chat_id: Default chat ID. Falls back to TELEGRAM_CHAT_ID env var.
         token: Bot token. Falls back to TELEGRAM_TOKEN env var.
-        output_directory: Directory for saving downloaded files. Only used when save_downloads=True.
+        output_directory: Directory for saving downloaded files.
         save_downloads: Save downloaded files to disk instead of returning base64.
-        send_message: Enable send_message tool. Defaults to True.
-        send_photo: Enable send_photo tool. Defaults to False.
-        send_document: Enable send_document tool. Defaults to False.
-        send_video: Enable send_video tool. Defaults to False.
-        send_audio: Enable send_audio tool. Defaults to False.
-        send_animation: Enable send_animation tool. Defaults to False.
-        send_sticker: Enable send_sticker tool. Defaults to False.
-        edit_message: Enable edit_message tool. Defaults to False.
-        delete_message: Enable delete_message tool. Defaults to False.
-        react_with_emoji: Enable react_with_emoji tool. Defaults to False.
-        pin_message: Enable pin_message tool. Defaults to False.
+        send_message: Enable send_message tool. Defaults to False (externally visible).
+        send_photo: Enable send_photo tool. Defaults to False (externally visible).
+        send_document: Enable send_document tool. Defaults to False (externally visible).
+        send_video: Enable send_video tool. Defaults to False (externally visible).
+        send_audio: Enable send_audio tool. Defaults to False (externally visible).
+        send_animation: Enable send_animation tool. Defaults to False (externally visible).
+        send_sticker: Enable send_sticker tool. Defaults to False (externally visible).
+        edit_message: Enable edit_message tool. Defaults to False (modifies external).
+        delete_message: Enable delete_message tool. Defaults to False (destructive).
+        react_with_emoji: Enable react_with_emoji tool. Defaults to False (externally visible).
+        pin_message: Enable pin_message tool. Defaults to False (modifies external).
         get_chat: Enable get_chat tool. Defaults to False.
         get_file: Enable get_file tool. Defaults to False.
-        all: Enable all tools. Overrides individual flags when True.
+        all: Enable all tools. Defaults to False.
     """
 
     def __init__(
@@ -44,7 +44,7 @@ class TelegramTools(Toolkit):
         token: Optional[str] = None,
         output_directory: Optional[str] = None,
         save_downloads: bool = False,
-        send_message: bool = True,
+        send_message: bool = False,
         send_photo: bool = False,
         send_document: bool = False,
         send_video: bool = False,
@@ -77,7 +77,7 @@ class TelegramTools(Toolkit):
         else:
             self.output_directory = None
 
-        tools: List[Any] = []
+        tools: List[Callable] = []
         if all or send_message:
             tools.append(self.send_message)
         if all or send_photo:

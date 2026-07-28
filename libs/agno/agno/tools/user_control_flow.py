@@ -1,5 +1,6 @@
+import json
 from textwrap import dedent
-from typing import Optional
+from typing import Callable, List, Optional
 
 from agno.tools import Toolkit
 
@@ -12,14 +13,20 @@ class UserControlFlowTools(Toolkit):
         get_user_input: bool = True,
         **kwargs,
     ):
-        """A toolkit that provides the ability for the agent to interrupt the agent run and interact with the user."""
+        """Toolkit that allows the agent to interrupt execution and request user input.
 
+        Args:
+            instructions: Custom instructions for the toolkit. Defaults to built-in guidelines.
+            add_instructions: Whether to add instructions to the agent's system prompt.
+            get_user_input: Whether to enable the get_user_input tool.
+            **kwargs: Additional arguments passed to the Toolkit base class.
+        """
         if instructions is None:
             self.instructions = self.DEFAULT_INSTRUCTIONS
         else:
             self.instructions = instructions
 
-        tools = []
+        tools: List[Callable] = []
         if get_user_input:
             tools.append(self.get_user_input)
 
@@ -28,6 +35,7 @@ class UserControlFlowTools(Toolkit):
             instructions=self.instructions,
             add_instructions=add_instructions,
             tools=tools,
+            stop_after_tool_call_tools=["get_user_input"],
             **kwargs,
         )
 
@@ -40,9 +48,11 @@ class UserControlFlowTools(Toolkit):
                 - field_type: The type of the field to get input for. Only valid python types are supported (e.g. str, int, float, bool, list, dict, etc.).
                 - field_description: A description of the field to get input for.
 
+        Returns:
+            str: JSON string confirming user input was received.
         """
-        # Nothing needs to be executed here, the agent logic will interrupt the run and wait for the user input
-        return "User input received"
+        # Agent logic will interrupt the run and wait for user input
+        return json.dumps({"status": "success", "message": "User input received"})
 
     # --------------------------------------------------------------------------------
     # Default instructions
