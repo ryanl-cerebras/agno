@@ -1,6 +1,6 @@
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import requests
 
@@ -9,22 +9,7 @@ from agno.utils.log import log_debug, log_error, log_warning
 
 
 class SearchApiTools(Toolkit):
-    """
-    SearchApiTools is a toolkit for searching the web using the SearchAPI.io API.
-
-    SearchAPI provides real-time SERP data for Google, Google News, Google Images,
-    YouTube, and more.
-
-    Args:
-        api_key (Optional[str]): SearchAPI key. If not provided, uses SEARCHAPI_API_KEY env var.
-        num_results (int): Default number of results to return. Default is 5.
-        timeout (int): Request timeout in seconds. Default is 30.
-        search_google (bool): Enable Google web search. Default is True.
-        search_news (bool): Enable Google News search. Default is False.
-        search_images (bool): Enable Google Images search. Default is False.
-        search_youtube (bool): Enable YouTube search. Default is False.
-        all (bool): If True, enable every search engine regardless of the individual flags.
-    """
+    """Search the web using SearchAPI.io for Google, News, Images, and YouTube."""
 
     def __init__(
         self,
@@ -38,6 +23,18 @@ class SearchApiTools(Toolkit):
         all: bool = False,
         **kwargs,
     ):
+        """Initialize SearchAPI toolkit for web search.
+
+        Args:
+            api_key: SearchAPI key. Falls back to SEARCHAPI_API_KEY env var.
+            num_results: Default number of results to return.
+            timeout: Request timeout in seconds.
+            search_google: Enable Google web search.
+            search_news: Enable Google News search.
+            search_images: Enable Google Images search.
+            search_youtube: Enable YouTube search.
+            all: Enable all search engines.
+        """
         self.api_key = api_key or getenv("SEARCHAPI_API_KEY")
         if not self.api_key:
             log_warning("No SearchAPI key provided. Set the SEARCHAPI_API_KEY environment variable.")
@@ -46,7 +43,7 @@ class SearchApiTools(Toolkit):
         self.timeout = timeout
         self.base_url = "https://www.searchapi.io/api/v1/search"
 
-        tools: List[Any] = []
+        tools: List[Callable] = []
         if all or search_google:
             tools.append(self.search_google)
         if all or search_news:
