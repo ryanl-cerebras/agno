@@ -46,7 +46,7 @@ class ScavioTools(Toolkit):
     INSTAGRAM_USER_FOLLOWERS = "instagram_user_followers"
     INSTAGRAM_USER_FOLLOWINGS = "instagram_user_followings"
 
-    def __init__(self, api_key: Optional[str] = None, **kwargs):
+    def __init__(self, api_key: Optional[str] = None, all: bool = False, **kwargs):
         """Initialize ScavioTools, a unified search toolkit for AI agents.
 
         Scavio provides real-time search across Google, YouTube, Amazon, Walmart,
@@ -54,6 +54,7 @@ class ScavioTools(Toolkit):
 
         Args:
             api_key: Scavio API key. Falls back to SCAVIO_API_KEY env var.
+            all: Enable all tools (default behavior, kept for explicitness).
             **kwargs: Passed to Toolkit. Use include_tools/exclude_tools to filter.
 
         Example:
@@ -63,6 +64,8 @@ class ScavioTools(Toolkit):
             # Include all except TikTok tools
             ScavioTools(exclude_tools=["tiktok_profile", "tiktok_user_posts"])
         """
+        # Note: `all` param kept for API consistency but is effectively always True
+        # since we register all tools and let base Toolkit filter via include/exclude
         self.api_key = api_key or getenv("SCAVIO_API_KEY")
         if not self.api_key:
             log_error("SCAVIO_API_KEY not provided")
