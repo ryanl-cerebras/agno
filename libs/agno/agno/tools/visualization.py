@@ -1,12 +1,24 @@
 import json
 import os
-from typing import Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from agno.tools import Toolkit
-from agno.utils.log import log_info, logger
+from agno.utils.log import log_exception, log_info
 
 
 class VisualizationTools(Toolkit):
+    """Toolkit for creating charts and visualizations using matplotlib.
+
+    Args:
+        output_dir: Directory to save charts. Defaults to "charts".
+        create_bar_chart: Enable create_bar_chart tool. Defaults to False.
+        create_line_chart: Enable create_line_chart tool. Defaults to False.
+        create_pie_chart: Enable create_pie_chart tool. Defaults to False.
+        create_scatter_plot: Enable create_scatter_plot tool. Defaults to False.
+        create_histogram: Enable create_histogram tool. Defaults to False.
+        all: Enable all tools. Defaults to False.
+    """
+
     def __init__(
         self,
         output_dir: str = "charts",
@@ -18,12 +30,6 @@ class VisualizationTools(Toolkit):
         all: bool = False,
         **kwargs,
     ):
-        """
-        Initialize the VisualizationTools toolkit.
-
-        Args:
-            output_dir (str): Directory to save charts. Default is "charts".
-        """
         # Check if matplotlib is available
         try:
             import matplotlib
@@ -161,7 +167,7 @@ class VisualizationTools(Toolkit):
             )
 
         except Exception as e:
-            logger.exception("Error creating bar chart")
+            log_exception("Error creating bar chart")
             return json.dumps({"chart_type": "bar_chart", "error": str(e), "status": "error"})
 
     def create_line_chart(
@@ -234,7 +240,7 @@ class VisualizationTools(Toolkit):
             )
 
         except Exception as e:
-            logger.exception("Error creating line chart")
+            log_exception("Error creating line chart")
             return json.dumps({"chart_type": "line_chart", "error": str(e), "status": "error"})
 
     def create_pie_chart(
@@ -299,7 +305,7 @@ class VisualizationTools(Toolkit):
             )
 
         except Exception as e:
-            logger.exception("Error creating pie chart")
+            log_exception("Error creating pie chart")
             return json.dumps({"chart_type": "pie_chart", "error": str(e), "status": "error"})
 
     def create_scatter_plot(
@@ -388,7 +394,7 @@ class VisualizationTools(Toolkit):
             )
 
         except Exception as e:
-            logger.exception("Error creating scatter plot")
+            log_exception("Error creating scatter plot")
             return json.dumps({"chart_type": "scatter_plot", "error": str(e), "status": "error"})
 
     def create_histogram(
@@ -463,5 +469,5 @@ class VisualizationTools(Toolkit):
             )
 
         except Exception as e:
-            logger.exception("Error creating histogram")
+            log_exception("Error creating histogram")
             return json.dumps({"chart_type": "histogram", "error": str(e), "status": "error"})
