@@ -17,7 +17,7 @@ Tools:
 import json
 import time
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_error
@@ -75,7 +75,7 @@ class ScrapeGraphTools(Toolkit):
         self.crawl_poll_interval: int = crawl_poll_interval
         self.crawl_max_wait: int = crawl_max_wait
 
-        tools: List[Any] = []
+        tools: List[Callable] = []
         if all or smartscraper:
             tools.append(self.smartscraper)
         if all or markdownify:
