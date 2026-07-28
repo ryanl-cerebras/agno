@@ -2,6 +2,7 @@ import json
 import os
 from pathlib import Path
 from typing import Callable, List, Optional, Tuple
+from uuid import uuid4
 
 from agno.exceptions import PathSecurityError
 from agno.tools import Toolkit
@@ -82,6 +83,7 @@ class FileTools(Toolkit):
     def __init__(
         self,
         base_dir: Optional[Path] = None,
+        default_extension: str = "txt",
         save_file: bool = True,
         read_file: bool = True,
         delete_file: bool = False,
@@ -98,7 +100,28 @@ class FileTools(Toolkit):
         all: bool = False,
         **kwargs,
     ):
+        """Initialize FileTools for local file system operations.
+
+        Args:
+            base_dir: Root directory for all file operations. Defaults to cwd.
+            default_extension: Default file extension when none specified.
+            save_file: Enable the save_file tool.
+            read_file: Enable the read_file tool.
+            delete_file: Enable the delete_file tool.
+            list_files: Enable the list_files tool.
+            search_files: Enable the search_files tool.
+            read_file_chunk: Enable the read_file_chunk tool.
+            replace_file_chunk: Enable the replace_file_chunk tool.
+            search_content: Enable the search_content tool.
+            expose_base_directory: Include base_dir in search results.
+            max_file_length: Max file size for read_file (chars).
+            max_file_lines: Max file lines for read_file.
+            line_separator: Line separator for chunked operations.
+            exclude_patterns: Patterns to exclude from list/search operations.
+            all: Enable all tools.
+        """
         self.base_dir: Path = (base_dir or Path.cwd()).resolve()
+        self.default_extension = default_extension.lstrip(".")
 
         tools: List[Callable] = []
         self.max_file_length = max_file_length
@@ -142,31 +165,44 @@ class FileTools(Toolkit):
         """
         return self._check_path(relative_path, self.base_dir)
 
-    def save_file(self, contents: str, file_name: str, overwrite: bool = True, encoding: str = "utf-8") -> str:
+    def save_file(
+        self,
+        contents: str,
+        file_name: Optional[str] = None,
+        overwrite: bool = True,
+        encoding: str = "utf-8",
+        extension: Optional[str] = None,
+    ) -> str:
         """Save contents to a file.
 
         Args:
             contents: The contents to save.
-            file_name: The name of the file to save to.
+            file_name: The name of the file. Auto-generated UUID if not provided.
             overwrite: Overwrite the file if it already exists.
             encoding: File encoding. Defaults to utf-8.
+            extension: File extension. Uses default_extension if not provided.
 
         Returns:
-            JSON with file name or error.
+            JSON with file path and status or error.
         """
         try:
-            safe, file_path = self.check_escape(file_name)
+            file_name = file_name or str(uuid4())
+            name_path = Path(file_name)
+            ext = (extension or name_path.suffix.lstrip(".") or self.default_extension).lstrip(".")
+            full_name = str(name_path.with_name(f"{name_path.stem}.{ext}"))
+
+            safe, file_path = self.check_escape(full_name)
             if not safe:
-                log_error(f"Attempted to save file: {file_name}")
+                log_error(f"Attempted to save file: {full_name}")
                 return json.dumps({"error": "Path is outside base directory"})
             log_debug(f"Saving contents to {file_path}")
             if not file_path.parent.exists():
                 file_path.parent.mkdir(parents=True, exist_ok=True)
             if file_path.exists() and not overwrite:
-                return json.dumps({"error": f"File {file_name} already exists"})
+                return json.dumps({"error": f"File {full_name} already exists"})
             file_path.write_text(contents, encoding=encoding)
             log_debug(f"Saved: {file_path}")
-            return json.dumps({"file": file_name, "status": "saved"})
+            return json.dumps({"file_path": str(file_path), "status": "saved"})
         except Exception as e:
             log_error(f"Error saving to file: {str(e)}")
             return json.dumps({"error": str(e)})
