@@ -19,8 +19,8 @@ class WebSearchTools(Toolkit):
     Multiple backends available: duckduckgo, google, bing, brave, yandex, yahoo, etc.
 
     Args:
-        search: Enable web search function.
-        news: Enable news search function.
+        search_web: Enable search_web tool. Defaults to True.
+        search_news: Enable search_news tool. Defaults to True.
         backend: Backend for searching. Defaults to "auto" (selects available).
         modifier: Modifier to prepend to search queries.
         fixed_max_results: Fixed number of maximum results.
@@ -34,8 +34,8 @@ class WebSearchTools(Toolkit):
 
     def __init__(
         self,
-        search: bool = True,
-        news: bool = True,
+        search_web: bool = True,
+        search_news: bool = True,
         backend: str = "auto",
         modifier: Optional[str] = None,
         fixed_max_results: Optional[int] = None,
@@ -63,14 +63,14 @@ class WebSearchTools(Toolkit):
         self.region: Optional[str] = region
 
         tools: List[Callable] = []
-        if all or search:
-            tools.append(self.web_search)
-        if all or news:
+        if all or search_web:
+            tools.append(self.search_web)
+        if all or search_news:
             tools.append(self.search_news)
 
         super().__init__(name="websearch", tools=tools, **kwargs)
 
-    def web_search(self, query: str, max_results: int = 5) -> str:
+    def search_web(self, query: str, max_results: int = 5) -> str:
         """Search the web for a query.
 
         Args:

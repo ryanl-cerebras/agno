@@ -1,12 +1,12 @@
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import httpx
 from pydantic import BaseModel, Field
 
 from agno.tools import Toolkit
-from agno.utils.log import logger
+from agno.utils.log import log_exception
 
 
 class ReplyButton(BaseModel):
@@ -32,15 +32,33 @@ class ListSection(BaseModel):
 
 
 class WhatsAppTools(Toolkit):
+    """Toolkit for sending messages via WhatsApp Business Cloud API.
+
+    Args:
+        access_token: WhatsApp access token. Falls back to WHATSAPP_ACCESS_TOKEN env var.
+        phone_number_id: WhatsApp phone number ID. Falls back to WHATSAPP_PHONE_NUMBER_ID env var.
+        version: API version. Falls back to WHATSAPP_VERSION env var or "v22.0".
+        recipient_waid: Default recipient WhatsApp ID. Falls back to WHATSAPP_RECIPIENT_WAID env var.
+        send_text_message: Enable send_text_message tool. Defaults to False (sends external message).
+        send_template_message: Enable send_template_message tool. Defaults to False (sends external message).
+        send_reply_buttons: Enable send_reply_buttons tool. Defaults to False (sends external message).
+        send_list_message: Enable send_list_message tool. Defaults to False (sends external message).
+        send_image: Enable send_image tool. Defaults to False (sends external message).
+        send_document: Enable send_document tool. Defaults to False (sends external message).
+        send_location: Enable send_location tool. Defaults to False (sends external message).
+        send_reaction: Enable send_reaction tool. Defaults to False (sends external message).
+        all: Enable all tools. Defaults to False.
+        timeout: Request timeout in seconds. Defaults to 30.
+    """
+
     def __init__(
         self,
         access_token: Optional[str] = None,
         phone_number_id: Optional[str] = None,
         version: Optional[str] = None,
         recipient_waid: Optional[str] = None,
-        # Tool enable/disable flags
-        send_text_message: bool = True,
-        send_template_message: bool = True,
+        send_text_message: bool = False,
+        send_template_message: bool = False,
         send_reply_buttons: bool = False,
         send_list_message: bool = False,
         send_image: bool = False,
@@ -66,8 +84,7 @@ class WhatsAppTools(Toolkit):
         self.version = version or getenv("WHATSAPP_VERSION", "v22.0")
         self.base_url = "https://graph.facebook.com"
 
-        # Register only enabled tools to keep the agent's tool list focused
-        tools: List[Any] = []
+        tools: List[Callable] = []
         if all or send_text_message:
             tools.append(self.send_text_message)
         if all or send_template_message:
@@ -148,7 +165,7 @@ class WhatsAppTools(Toolkit):
             message_id = response.get("messages", [{}])[0].get("id", "unknown")
             return json.dumps({"ok": True, "message_id": message_id})
         except Exception:
-            logger.exception("Error sending text message")
+            log_exception("Error sending text message")
             raise
 
     def send_template_message(
@@ -188,7 +205,7 @@ class WhatsAppTools(Toolkit):
             message_id = response.get("messages", [{}])[0].get("id", "unknown")
             return json.dumps({"ok": True, "message_id": message_id})
         except Exception:
-            logger.exception("Error sending template message")
+            log_exception("Error sending template message")
             raise
 
     def send_reply_buttons(
@@ -241,7 +258,7 @@ class WhatsAppTools(Toolkit):
             message_id = response.get("messages", [{}])[0].get("id", "unknown")
             return json.dumps({"ok": True, "message_id": message_id})
         except Exception:
-            logger.exception("Error sending reply buttons")
+            log_exception("Error sending reply buttons")
             raise
 
     def send_list_message(
@@ -316,7 +333,7 @@ class WhatsAppTools(Toolkit):
             message_id = response.get("messages", [{}])[0].get("id", "unknown")
             return json.dumps({"ok": True, "message_id": message_id})
         except Exception:
-            logger.exception("Error sending list message")
+            log_exception("Error sending list message")
             raise
 
     def send_image(
@@ -363,7 +380,7 @@ class WhatsAppTools(Toolkit):
             message_id = response.get("messages", [{}])[0].get("id", "unknown")
             return json.dumps({"ok": True, "message_id": message_id})
         except Exception:
-            logger.exception("Error sending image")
+            log_exception("Error sending image")
             raise
 
     def send_document(
@@ -414,7 +431,7 @@ class WhatsAppTools(Toolkit):
             message_id = response.get("messages", [{}])[0].get("id", "unknown")
             return json.dumps({"ok": True, "message_id": message_id})
         except Exception:
-            logger.exception("Error sending document")
+            log_exception("Error sending document")
             raise
 
     def send_location(
@@ -461,7 +478,7 @@ class WhatsAppTools(Toolkit):
             message_id = response.get("messages", [{}])[0].get("id", "unknown")
             return json.dumps({"ok": True, "message_id": message_id})
         except Exception:
-            logger.exception("Error sending location")
+            log_exception("Error sending location")
             raise
 
     def send_reaction(
@@ -498,5 +515,5 @@ class WhatsAppTools(Toolkit):
             resp_message_id = response.get("messages", [{}])[0].get("id", "unknown")
             return json.dumps({"ok": True, "message_id": resp_message_id})
         except Exception:
-            logger.exception("Error sending reaction")
+            log_exception("Error sending reaction")
             raise
