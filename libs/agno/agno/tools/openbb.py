@@ -1,8 +1,9 @@
 import json
+from os import getenv
 from typing import Any, Callable, List, Literal, Optional
 
 from agno.tools import Toolkit
-from agno.utils.log import log_debug
+from agno.utils.log import log_debug, log_exception
 
 try:
     from openbb import obb as openbb_app
@@ -14,6 +15,7 @@ class OpenBBTools(Toolkit):
     def __init__(
         self,
         obb: Optional[Any] = None,
+        openbb_pat: Optional[str] = None,
         provider: Literal["benzinga", "fmp", "intrinio", "polygon", "tiingo", "tmx", "yfinance"] = "yfinance",
         get_stock_price: bool = True,
         search_company_symbol: bool = False,
@@ -25,11 +27,12 @@ class OpenBBTools(Toolkit):
     ):
         """OpenBB financial data tools for stock prices, company info, and news.
 
-        Requires `pip install openbb`. Credentials are configured via obb.user.credentials
-        or user_settings.json (see OpenBB docs).
+        Requires `pip install openbb`. For premium data providers, authenticate with
+        an OpenBB PAT via the openbb_pat parameter or OPENBB_PAT env var.
 
         Args:
             obb: Custom OpenBB instance. Defaults to the global obb app.
+            openbb_pat: OpenBB Personal Access Token. Falls back to OPENBB_PAT env var.
             provider: Data provider to use for API calls.
             get_stock_price: Enable stock price lookup tool.
             search_company_symbol: Enable company symbol search tool.
@@ -39,6 +42,13 @@ class OpenBBTools(Toolkit):
             all: Enable all tools regardless of individual flags.
         """
         self.obb = obb or openbb_app
+
+        try:
+            pat = openbb_pat or getenv("OPENBB_PAT")
+            if pat:
+                self.obb.account.login(pat=pat)  # type: ignore
+        except Exception:
+            log_exception("Error logging into OpenBB")
 
         self.provider: Literal["benzinga", "fmp", "intrinio", "polygon", "tiingo", "tmx", "yfinance"] = provider
 
